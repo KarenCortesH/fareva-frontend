@@ -4,6 +4,7 @@ import Navbar from './components/Navbar';
 import InventoryList from './components/InventoryList';
 import InventoryDetails from './components/InventoryDetails';
 import InventoryRegister from './components/InventoryRegister';
+import EditarInventario from "./components/InvetoryEdit"; 
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
       <Routes>
         <Route path="/inventarios" element={<InventoryList />} />
         <Route path="/inventarios/:id" element={<InventoryDetails />} />
+        <Route path="/editar/:id" element={<EditarInventario />} />
         <Route path="/registro" element={<InventoryRegister />} />
       </Routes>
     </Router>

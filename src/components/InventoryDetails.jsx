@@ -1,58 +1,71 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
-import { fetchInventoryDetails } from "../services/api";
+import { useParams, useNavigate } from "react-router-dom";
 
 const InventoryDetails = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [inventory, setInventory] = useState(null);
 
+  // Obtener los detalles del inventario
   useEffect(() => {
-    const loadInventoryDetails = async () => {
+    const fetchInventory = async () => {
       try {
-        const data = await fetchInventoryDetails(id);
+        const response = await fetch(`http://localhost:5000/api/inventarios/${id}`);
+        if (!response.ok) throw new Error("Error al obtener los detalles del inventario.");
+        const data = await response.json();
         setInventory(data);
       } catch (error) {
-        console.error("Error al cargar los detalles del inventario:", error);
+        console.error("Error al obtener el inventario:", error);
       }
     };
 
-    loadInventoryDetails();
+    fetchInventory();
   }, [id]);
 
+  // Manejar eliminación del inventario
+  const handleDelete = async () => {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este inventario?")) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/inventarios/${id}`, {
+          method: "DELETE",
+        });
+        if (!response.ok) throw new Error("Error al eliminar el inventario.");
+        alert("Inventario eliminado con éxito.");
+        navigate("/inventarios"); // Redirigir al listado después de eliminar
+      } catch (error) {
+        console.error("Error al eliminar el inventario:", error);
+        alert("Error al eliminar el inventario.");
+      }
+    }
+  };
+
+  // Verificar si el inventario no está disponible
   if (!inventory) {
-    return <div style={styles.loading}>Cargando detalles del inventario...</div>;
+    return <div>Cargando detalles del inventario...</div>;
   }
 
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Detalles del Inventario</h1>
-      <div style={styles.card}>
-        <h2 style={styles.cardTitle}>{inventory.producto}</h2>
-        <p style={styles.detail}>
-          <strong>ID:</strong> {inventory.id}
-        </p>
-        <p style={styles.detail}>
-          <strong>Lote:</strong> {inventory.lote}
-        </p>
-        <p style={styles.detail}>
-          <strong>Cantidad:</strong> {inventory.cantidad}
-        </p>
-        <p style={styles.detail}>
-          <strong>Estado:</strong>{" "}
-          <span
-            style={{
-              ...styles.status,
-              backgroundColor:
-                inventory.estado === "activo" ? "#4CAF50" : "#F44336",
-            }}
-          >
-            {inventory.estado.toUpperCase()}
-          </span>
-        </p>
-        <p style={styles.detail}>
-          <strong>Fecha de Registro:</strong>{" "}
-          {new Date(inventory.fecha_registro).toLocaleDateString()}
-        </p>
+      <p style={styles.detail}>
+        <strong>Producto:</strong> {inventory.producto}
+      </p>
+      <p style={styles.detail}>
+        <strong>Lote:</strong> {inventory.lote}
+      </p>
+      <p style={styles.detail}>
+        <strong>Cantidad:</strong> {inventory.cantidad}
+      </p>
+      <p style={styles.detail}>
+        <strong>Estado:</strong> {inventory.estado}
+      </p>
+      <div style={styles.buttonContainer}>
+        <button style={styles.editButton} onClick={() => navigate(`/editar/${id}`)}>
+          Editar
+        </button>
+        <button style={styles.deleteButton} onClick={handleDelete}>
+          Eliminar
+        </button>
       </div>
     </div>
   );
@@ -60,12 +73,12 @@ const InventoryDetails = () => {
 
 const styles = {
   container: {
-    maxWidth: "800px",
-    margin: "0 auto",
+    maxWidth: "600px",
+    margin: "50px auto",
     padding: "20px",
-    backgroundColor: "#f7f7f7",
-    borderRadius: "10px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+    backgroundColor: "#fff",
+    borderRadius: "8px",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
   },
   title: {
     textAlign: "center",
@@ -73,34 +86,34 @@ const styles = {
     color: "#7a232e",
     marginBottom: "20px",
   },
-  card: {
-    backgroundColor: "#fff",
-    padding: "20px",
-    borderRadius: "10px",
-    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-  },
-  cardTitle: {
-    fontSize: "1.8rem",
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: "15px",
-  },
   detail: {
     fontSize: "1rem",
-    color: "#555",
     marginBottom: "10px",
   },
-  status: {
-    color: "#fff",
-    padding: "5px 10px",
-    borderRadius: "5px",
-    fontWeight: "bold",
+  buttonContainer: {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: "20px",
   },
-  loading: {
-    textAlign: "center",
-    fontSize: "1.2rem",
-    color: "#7a232e",
-    marginTop: "50px",
+  editButton: {
+    backgroundColor: "#4CAF50",
+    color: "#fff",
+    padding: "10px 20px",
+    fontSize: "1rem",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    transition: "background-color 0.3s ease",
+  },
+  deleteButton: {
+    backgroundColor: "#f44336",
+    color: "#fff",
+    padding: "10px 20px",
+    fontSize: "1rem",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    transition: "background-color 0.3s ease",
   },
 };
 

@@ -1,15 +1,37 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // Importar useNavigate para redirigir
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 
-const RegistroInventario = () => {
-  const navigate = useNavigate(); // Hook para manejar la navegación
-
+const EditarInventario = () => {
+  const { id } = useParams(); // Obtener el ID de la URL
+  const navigate = useNavigate(); // Para redirigir después de guardar
   const [formData, setFormData] = useState({
     producto: "",
     lote: "",
     cantidad: "",
     estado: "",
   });
+  const [loading, setLoading] = useState(true); // Mostrar un indicador de carga
+
+  // Cargar los datos del inventario
+  useEffect(() => {
+    const fetchInventario = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/inventarios/${id}`);
+        if (!response.ok) {
+          throw new Error("Error al cargar los datos del inventario.");
+        }
+        const data = await response.json();
+        setFormData(data);
+        setLoading(false); // Ocultar el indicador de carga
+      } catch (error) {
+        console.error("Error al cargar los datos del inventario:", error);
+        alert("No se pudo cargar el inventario.");
+        navigate("/inventarios"); // Redirigir al listado en caso de error
+      }
+    };
+
+    fetchInventario();
+  }, [id, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -20,9 +42,8 @@ const RegistroInventario = () => {
     e.preventDefault();
 
     try {
-      // Realizar la solicitud POST a la API del backend
-      const response = await fetch("http://localhost:5000/api/inventarios", {
-        method: "POST",
+      const response = await fetch(`http://localhost:5000/api/inventarios/${id}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
@@ -30,20 +51,24 @@ const RegistroInventario = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Error al guardar el registro.");
+        throw new Error("No se pudo actualizar el inventario.");
       }
 
-      alert("Registro guardado con éxito.");
-      navigate("/inventarios"); // Redirigir al listado de inventarios
+      alert("Inventario actualizado con éxito.");
+      navigate("/inventarios");
     } catch (error) {
-      console.error("Error al guardar el registro:", error);
-      alert("Ocurrió un error al guardar el registro.");
+      console.error("Error al actualizar el inventario:", error);
+      alert("Error al actualizar el inventario.");
     }
   };
 
+  if (loading) {
+    return <p>Cargando datos del inventario...</p>; // Indicador de carga
+  }
+
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Registrar Nuevo Inventario</h1>
+      <h1 style={styles.title}>Editar Inventario</h1>
       <form onSubmit={handleSubmit} style={styles.form}>
         <label style={styles.label}>
           Producto:
@@ -53,7 +78,6 @@ const RegistroInventario = () => {
             value={formData.producto}
             onChange={handleChange}
             style={styles.input}
-            placeholder="Ingrese el producto"
             required
           />
         </label>
@@ -65,7 +89,6 @@ const RegistroInventario = () => {
             value={formData.lote}
             onChange={handleChange}
             style={styles.input}
-            placeholder="Ingrese el lote"
             required
           />
         </label>
@@ -77,7 +100,6 @@ const RegistroInventario = () => {
             value={formData.cantidad}
             onChange={handleChange}
             style={styles.input}
-            placeholder="Ingrese la cantidad"
             required
           />
         </label>
@@ -96,7 +118,7 @@ const RegistroInventario = () => {
           </select>
         </label>
         <button type="submit" style={styles.submitButton}>
-          Guardar Registro
+          Guardar Cambios
         </button>
       </form>
     </div>
@@ -108,16 +130,15 @@ const styles = {
     maxWidth: "600px",
     margin: "50px auto",
     padding: "20px",
-    backgroundColor: "#fff",
+    backgroundColor: "#f9f9f9",
+    borderRadius: "10px",
     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-    borderRadius: "8px",
   },
   title: {
     textAlign: "center",
-    color: "#7a232e",
     fontSize: "2rem",
+    color: "#7a232e",
     marginBottom: "20px",
-    fontWeight: "bold",
   },
   form: {
     display: "flex",
@@ -126,31 +147,25 @@ const styles = {
   },
   label: {
     fontSize: "1rem",
+    fontWeight: "bold",
     color: "#333",
-    marginBottom: "5px",
   },
   input: {
     width: "100%",
     padding: "10px",
-    border: "1px solid #ddd",
-    borderRadius: "5px",
     fontSize: "1rem",
+    borderRadius: "5px",
+    border: "1px solid #ddd",
   },
   submitButton: {
-    backgroundColor: "#4CAF50",
+    backgroundColor: "#7a232e",
     color: "#fff",
-    padding: "10px 15px",
-    border: "none",
+    padding: "10px",
     borderRadius: "5px",
     fontSize: "1rem",
-    fontWeight: "bold",
     cursor: "pointer",
-    textAlign: "center",
     transition: "background-color 0.3s ease",
-  },
-  submitButtonHover: {
-    backgroundColor: "#388E3C",
   },
 };
 
-export default RegistroInventario;
+export default EditarInventario;
